@@ -12,30 +12,9 @@ export type TeamMember = {
   imageAlt: string;
   x: string;
   xHandle: string;
-  /** Featured founders render as full-width rows above the grid. */
+  /** Featured founders render centered above the rest of the grid. */
   featured?: boolean;
 };
-
-const DUMMY: Omit<TeamMember, "id" | "imageAlt">[] = [
-  { firstName: "Maya", lastName: "Chen", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@maya_chen" },
-  { firstName: "Leo", lastName: "Okoye", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@leookoye" },
-  { firstName: "Sofia", lastName: "Reyes", role: "Design", x: "https://x.com/ghostlabshq", xHandle: "@sofiareyes" },
-  { firstName: "Noah", lastName: "Patel", role: "Product", x: "https://x.com/ghostlabshq", xHandle: "@noahpatel" },
-  { firstName: "Aisha", lastName: "Khan", role: "Growth", x: "https://x.com/ghostlabshq", xHandle: "@aishak" },
-  { firstName: "Jonas", lastName: "Berg", role: "Protocol", x: "https://x.com/ghostlabshq", xHandle: "@jonasberg" },
-  { firstName: "Elena", lastName: "Volkov", role: "Security", x: "https://x.com/ghostlabshq", xHandle: "@elenav" },
-  { firstName: "Kai", lastName: "Nakamura", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@kainakamura" },
-  { firstName: "Priya", lastName: "Nair", role: "Ops", x: "https://x.com/ghostlabshq", xHandle: "@priyanair" },
-  { firstName: "Marcus", lastName: "Cole", role: "BD", x: "https://x.com/ghostlabshq", xHandle: "@marcuscole" },
-  { firstName: "Yuki", lastName: "Sato", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@yukisato" },
-  { firstName: "Amara", lastName: "Diallo", role: "Community", x: "https://x.com/ghostlabshq", xHandle: "@amarad" },
-  { firstName: "Theo", lastName: "Martin", role: "Research", x: "https://x.com/ghostlabshq", xHandle: "@theomartin" },
-  { firstName: "Nina", lastName: "Costa", role: "Design", x: "https://x.com/ghostlabshq", xHandle: "@ninacosta" },
-  { firstName: "Omar", lastName: "Hassan", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@omarh" },
-  { firstName: "Ivy", lastName: "Brooks", role: "Marketing", x: "https://x.com/ghostlabshq", xHandle: "@ivybrooks" },
-  { firstName: "Diego", lastName: "Alvarez", role: "DevRel", x: "https://x.com/ghostlabshq", xHandle: "@diegoa" },
-  { firstName: "Hana", lastName: "Kim", role: "Engineering", x: "https://x.com/ghostlabshq", xHandle: "@hanakim" },
-];
 
 export const TEAM: TeamMember[] = [
   {
@@ -45,8 +24,8 @@ export const TEAM: TeamMember[] = [
     role: "Co-founder",
     image: "/team/arnab.jpg",
     imageAlt: "Arnab Bhowmik, co-founder of Ghost Labs",
-    x: "https://x.com/ghostlabshq",
-    xHandle: "@ghostlabshq",
+    x: "https://x.com/bhowmik_arnab07",
+    xHandle: "@bhowmik_arnab07",
     featured: true,
   },
   {
@@ -60,11 +39,66 @@ export const TEAM: TeamMember[] = [
     xHandle: "@amaanbiz",
     featured: true,
   },
-  ...DUMMY.map((d, i) => ({
-    ...d,
-    id: `dummy-${i + 1}`,
-    imageAlt: `${d.firstName} ${d.lastName}`,
-  })),
+  {
+    id: "joseph",
+    firstName: "Joseph",
+    lastName: "Emmanuel",
+    role: "Community Moderator",
+    image: "/team/joseph.jpg",
+    imageAlt: "Joseph Emmanuel, community moderator at Ghost Labs",
+    x: "https://x.com/joe_1210",
+    xHandle: "@joe_1210",
+  },
+  {
+    id: "oluwatukesi",
+    firstName: "Oluwatukesi",
+    lastName: "Israel",
+    role: "Junior Manager",
+    image: "/team/oluwatukesi.png",
+    imageAlt: "Oluwatukesi Israel, junior manager at Ghost Labs",
+    x: "https://x.com/Web3Tuke_",
+    xHandle: "@Web3Tuke_",
+  },
+  {
+    id: "abdul",
+    firstName: "Abdul",
+    lastName: "Yakub",
+    role: "Community Manager",
+    image: "/team/abdul.jpg",
+    imageAlt: "Abdul Yakub, community manager at Ghost Labs",
+    x: "https://x.com/abdyweb3",
+    xHandle: "@abdyweb3",
+  },
+  {
+    id: "solosufi",
+    firstName: "SoloSufi",
+    lastName: "AbMajid",
+    role: "Chief Community Officer",
+    image: "/team/solosufi.png",
+    imageAlt: "SoloSufi (AbMajid), chief community officer at Ghost Labs",
+    x: "https://x.com/HassanA98493054",
+    xHandle: "@HassanA98493054",
+  },
+  {
+    id: "sohan",
+    firstName: "Sohan",
+    lastName: "Parvas",
+    role: "KOLs Manager",
+    image: "/team/sohan.png",
+    imageAlt: "Sohan Parvas, KOLs manager at Ghost Labs",
+    x: "https://x.com/MdSohan13605277",
+    xHandle: "@MdSohan13605277",
+  },
+  {
+    id: "draheem",
+    firstName: "Draheem",
+    lastName: "",
+    role: "Video Production Lead",
+    image: "/team/draheem.jpg",
+    imageAlt: "Draheem, video production lead at Ghost Labs",
+    x: "https://x.com/web3prosper",
+    xHandle: "@web3prosper",
+  },
 ];
 
 export function fullName(member: TeamMember): string {
@@ -72,5 +106,7 @@ export function fullName(member: TeamMember): string {
 }
 
 export function initials(member: TeamMember): string {
-  return `${member.firstName[0] ?? ""}${member.lastName[0] ?? ""}`.toUpperCase();
+  const a = member.firstName[0] ?? "";
+  const b = member.lastName[0] ?? member.firstName[1] ?? "";
+  return `${a}${b}`.toUpperCase();
 }

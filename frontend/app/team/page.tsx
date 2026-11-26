@@ -57,12 +57,14 @@ function Portrait({
 function MemberCard({
   member,
   priority,
+  className = "",
 }: {
   member: TeamMember;
   priority?: boolean;
+  className?: string;
 }) {
   return (
-    <li id={member.id} className="scroll-mt-28 min-w-0">
+    <li id={member.id} className={`scroll-mt-28 min-w-0 ${className}`}>
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-sand">
         <Portrait
           member={member}
@@ -73,8 +75,13 @@ function MemberCard({
       <div className="mt-3 border-t border-ink/15 pt-3">
         <h2 className="t-16 leading-[1.2]">
           <span className="block">{member.firstName}</span>
-          <span className="block text-ink/55">{member.lastName}</span>
+          {member.lastName ? (
+            <span className="block text-ink/55">{member.lastName}</span>
+          ) : null}
         </h2>
+        <p className="t-14 mt-2 font-normal leading-[1.3] text-ink/50">
+          {member.role}
+        </p>
         <a
           href={member.x}
           target="_blank"
@@ -95,7 +102,8 @@ export default function TeamPage() {
   const founders = TEAM.filter((m) => m.featured);
   const rest = TEAM.filter((m) => !m.featured);
 
-  const people = founders.map((m) => ({
+  const realMembers = TEAM.filter((m) => !m.id.startsWith("dummy-"));
+  const people = realMembers.map((m) => ({
     "@type": "Person",
     name: fullName(m),
     givenName: m.firstName,
@@ -123,7 +131,9 @@ export default function TeamPage() {
               "@type": "Organization",
               name: SITE.brand,
               url: SITE_URL,
-              founder: people,
+              founder: people.filter((p) =>
+                founders.some((f) => fullName(f) === p.name),
+              ),
               employee: people,
             },
             ...people,
@@ -149,11 +159,15 @@ export default function TeamPage() {
             ))}
           </ul>
 
-          {/* Everyone else — full grid */}
+          {/* Everyone else — same cards, centered (incl. last incomplete row) */}
           {rest.length > 0 ? (
-            <ul className="mt-12 grid grid-cols-2 gap-x-4 gap-y-10 border-t border-ink/10 pt-12 sm:grid-cols-3 md:mt-16 md:grid-cols-4 md:gap-x-6 md:gap-y-12 lg:grid-cols-5 md:pt-16">
+            <ul className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-10 border-t border-ink/10 pt-12 md:mt-16 md:gap-x-6 md:gap-y-12 md:pt-16">
               {rest.map((member) => (
-                <MemberCard key={member.id} member={member} />
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  className="w-[calc((100%-1rem)/2)] sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-4.5rem)/4)] lg:w-[calc((100%-6rem)/5)]"
+                />
               ))}
             </ul>
           ) : null}
