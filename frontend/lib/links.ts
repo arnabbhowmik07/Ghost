@@ -10,6 +10,7 @@ export const LINKS = {
   app: "/app",
   login: "/login",
   stake: "/stake",
+  team: "/team",
   docs: "/docs",
   litepaper: "/litepaper.pdf",
   pitchDeck: "/pitch-deck/index.html",
@@ -50,6 +51,7 @@ export const FOOTER_COLUMNS: { title: string; links: SiteLink[] }[] = [
     links: [
       { label: "App", href: LINKS.login },
       { label: "Stake", href: LINKS.stake },
+      { label: "Team", href: LINKS.team },
       { label: "Docs", href: LINKS.docs },
     ],
   },

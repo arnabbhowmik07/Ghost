@@ -19,6 +19,7 @@ export const SITEMAP_ROUTES: {
   { path: "/docs/shield", changeFrequency: "monthly", priority: 0.75 },
   { path: "/docs/faq", changeFrequency: "monthly", priority: 0.9 },
   { path: "/stake", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/team", changeFrequency: "monthly", priority: 0.75 },
   { path: "/login", changeFrequency: "monthly", priority: 0.7 },
   { path: "/pitch-deck/index.html", changeFrequency: "monthly", priority: 0.7 },
   { path: "/brand-kit/index.html", changeFrequency: "monthly", priority: 0.6 },
