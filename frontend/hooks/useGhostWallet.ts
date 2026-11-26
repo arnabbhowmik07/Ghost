@@ -15,6 +15,7 @@ import {
 } from "@reown/appkit/react";
 import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { ENABLE_DEV_WALLET } from "@/lib/config";
+import { trackWalletConnected } from "@/lib/analytics";
 import { GhostDevWalletAdapter } from "@/lib/devWallet";
 import "@/lib/appkit";
 
@@ -85,6 +86,14 @@ export function useGhostWallet() {
     status === "connecting" ||
     status === "reconnecting" ||
     devConnecting;
+
+  useEffect(() => {
+    if (!connected || !publicKey) return;
+    trackWalletConnected(
+      publicKey.toBase58(),
+      usingDev ? "dev" : "appkit",
+    );
+  }, [connected, publicKey, usingDev]);
 
   const connect = useCallback(async () => {
     // Connect UI is login-only — never open AppKit from other routes.

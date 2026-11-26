@@ -204,7 +204,7 @@ export default function SendPage() {
   return (
     <AppWorkspace
       title="Send"
-      description="Sign the transfer. Ghost pays the network fee from your prepaid credit. The signing wallet can hold zero SOL."
+      description="Sign the transfer. Ghost pays the network fee from your prepaid credit. The signing wallet can hold zero SOL. If the network stamp expires, Ghost refreshes it and asks you to approve again (up to 5 minutes)."
       actions={
         <>
           <StatusPill tone={creditOk ? "ok" : "warn"}>

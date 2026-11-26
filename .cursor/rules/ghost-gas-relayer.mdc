@@ -8,7 +8,9 @@ alwaysApply: false
 
 - Prepaid model: X1 tops up USDC → gas note; prepare/submit **require `gasNote`** and debit `GAS_CREDIT_FEE_RAW`.
 - Flow: `prepare` (check credit + build tx) → user signs → `submit` (send + debit note).
-- Allowlist: SPL transfer ± ATA create paid by relayer, plus ComputeBudget (wallets inject these).
-- Cap sponsored ixs around 6; prepare should include its own compute-budget ixs.
+- Allowlist (wallet-compat): ComputeBudget (limit/price required; heap + loaded-accounts optional),
+  SPL TransferChecked ± ATA create paid by relayer, Lighthouse asserts, Memo.
+  Wallets (Phantom/Solflare) mutate txs on sign — expect extra ixs; never allow unknown programs.
+- Cap sponsored ixs around 20; prepare should include its own compute-budget ixs.
 - Treasury default = relayer USDC ATA (`GAS_TREASURY` override).
-- UI: `/app/credits` (X1), `/app/send` (X2 + note).
+- UI: `/app/credits` (X1), `/app/send` (X2 + note). Blockhash retries up to 5 minutes in the client.

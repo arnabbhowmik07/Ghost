@@ -16,7 +16,9 @@ import {
 } from "@solana/spl-token";
 import {
   GAS_CU_LIMIT,
+  GAS_CU_LIMIT_MAX,
   GAS_CU_PRICE,
+  GAS_CU_PRICE_MAX,
   assertSponsoredTransferTx,
 } from "../src/gas.js";
 import { resetRateLimits, takeRateLimit } from "../src/gas-rate-limit.js";
@@ -145,8 +147,29 @@ describe("Ghost Gas", () => {
     assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
   });
 
+  it("accepts wallet-injected extra ComputeBudget ixs (5–6 total)", () => {
+    const { tx, relayer, owner } = signedTransferChecked({ withAta: true });
+    // Mimic Phantom/Solflare injecting another priority fee on sign.
+    tx.instructions.splice(
+      2,
+      0,
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: GAS_CU_PRICE }),
+    );
+    assert.equal(tx.instructions.length, 5);
+    const out = assertSponsoredTransferTx(tx, relayer);
+    assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
+  });
+
+  it("accepts wallet-rewritten priority fee within max", () => {
+    const { tx, relayer, owner } = signedTransferChecked({ cuPrice: 100_000 });
+    const out = assertSponsoredTransferTx(tx, relayer);
+    assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
+  });
+
   it("rejects inflated priority fees", () => {
-    const { tx, relayer } = signedTransferChecked({ cuPrice: GAS_CU_PRICE + 1 });
+    const { tx, relayer } = signedTransferChecked({
+      cuPrice: GAS_CU_PRICE_MAX + 1,
+    });
     assert.throws(() => assertSponsoredTransferTx(tx, relayer), /Priority fee/);
   });
 
@@ -158,10 +181,71 @@ describe("Ghost Gas", () => {
     );
   });
 
-  it("rejects compute budget above prepare caps", () => {
+  it("accepts wallet-rewritten CU limit within max", () => {
+    const { tx, relayer, owner } = signedTransferChecked({ cuLimit: 240_000 });
+    const out = assertSponsoredTransferTx(tx, relayer);
+    assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
+  });
+
+  it("rejects compute budget above accepted max", () => {
     const { tx, relayer } = signedTransferChecked({
-      cuLimit: GAS_CU_LIMIT + 1,
+      cuLimit: GAS_CU_LIMIT_MAX + 1,
     });
     assert.throws(() => assertSponsoredTransferTx(tx, relayer), /Compute unit limit/);
+  });
+
+  it("accepts wallet-injected Lighthouse assertion ixs", () => {
+    const { tx, relayer, owner } = signedTransferChecked({ withAta: true });
+    const lighthouse = new PublicKey(
+      "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95",
+    );
+    tx.add({
+      keys: [
+        { pubkey: owner.publicKey, isSigner: false, isWritable: false },
+      ],
+      programId: lighthouse,
+      data: Buffer.from([9]), // AssertTokenAccount discriminator-ish
+    });
+    const out = assertSponsoredTransferTx(tx, relayer);
+    assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
+  });
+
+  it("rejects Lighthouse ixs that mark relayer writable", () => {
+    const { tx, relayer } = signedTransferChecked();
+    const lighthouse = new PublicKey(
+      "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95",
+    );
+    tx.add({
+      keys: [
+        { pubkey: relayer.publicKey, isSigner: false, isWritable: true },
+      ],
+      programId: lighthouse,
+      data: Buffer.from([5]),
+    });
+    assert.throws(
+      () => assertSponsoredTransferTx(tx, relayer),
+      /Lighthouse instruction must not use the Ghost relayer/,
+    );
+  });
+
+  it("accepts Memo and ComputeBudget loaded-accounts size ix", () => {
+    const { tx, relayer, owner } = signedTransferChecked();
+    const memo = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+    tx.add({
+      keys: [{ pubkey: owner.publicKey, isSigner: false, isWritable: false }],
+      programId: memo,
+      data: Buffer.from("ghost-test", "utf8"),
+    });
+    // SetLoadedAccountsDataSizeLimit = tag 4 + u32
+    const loaded = Buffer.alloc(5);
+    loaded[0] = 4;
+    loaded.writeUInt32LE(32 * 1024 * 1024, 1);
+    tx.add({
+      keys: [],
+      programId: ComputeBudgetProgram.programId,
+      data: loaded,
+    });
+    const out = assertSponsoredTransferTx(tx, relayer);
+    assert.equal(out.from.toBase58(), owner.publicKey.toBase58());
   });
 });

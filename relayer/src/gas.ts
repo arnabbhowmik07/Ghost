@@ -27,12 +27,44 @@ import {
 
 const COMPUTE_BUDGET_PROGRAM_ID = ComputeBudgetProgram.programId;
 
-/** Matches prepare(); anything higher is rejected on submit. */
-export const GAS_CU_LIMIT = 200_000;
-export const GAS_CU_PRICE = 1_000;
+/** Prepare stamps this CU limit. */
+export const GAS_CU_LIMIT = 300_000;
+/**
+ * Wallets often rewrite SetComputeUnitLimit on sign (e.g. Phantom → 240k).
+ * Accept up to 5L (500k); simple transfers use far less.
+ */
+export const GAS_CU_LIMIT_MAX = 500_000;
+/** Prepare stamps this priority fee (µ-lamports / CU). */
+export const GAS_CU_PRICE = 100_000;
+/**
+ * Wallets often rewrite SetComputeUnitPrice on sign.
+ * Headroom above typical wallet defaults; still cheap in SOL at our CU caps.
+ */
+export const GAS_CU_PRICE_MAX = 5_000_000;
 
-/** TransferChecked + optional 1 ATA + 2 budget ixs. */
-const MAX_SPONSORED_IXS = 4;
+/**
+ * Sponsored-tx wallet-compat allowlist (aligned with x402 / Phantom+Solflare practice):
+ * ComputeBudget + TransferChecked ± ATA + Lighthouse asserts ± Memo.
+ * Wallets mutate txs on sign; reject only fund-moving / unknown programs.
+ */
+const MAX_SPONSORED_IXS = 20;
+/** Cap wallet-injected Lighthouse assertion ixs (Phantom ≤3, Solflare ≤2). */
+const MAX_LIGHTHOUSE_IXS = 8;
+/** Cap wallet/client Memo ixs. */
+const MAX_MEMO_IXS = 2;
+const MAX_MEMO_BYTES = 128;
+
+/**
+ * Lighthouse assertion program (Phantom/Solflare simulation guards).
+ * Read/assert only — does not move SPL/SOL when used as injected asserts.
+ */
+const LIGHTHOUSE_PROGRAM_ID = new PublicKey(
+  "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95",
+);
+/** SPL Memo (v2) — wallets/clients sometimes append uniqueness memos. */
+const MEMO_PROGRAM_ID = new PublicKey(
+  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+);
 
 // spl-token instruction tags
 const TAG_TRANSFER = 3;
@@ -40,8 +72,14 @@ const TAG_TRANSFER_CHECKED = 12;
 // associated-token-account: CreateIdempotent
 const ATA_CREATE_IDEMPOTENT = 1;
 // compute-budget
+const CB_REQUEST_HEAP = 0;
 const CB_SET_LIMIT = 2;
 const CB_SET_PRICE = 3;
+const CB_SET_LOADED_ACCOUNTS_DATA_SIZE = 4;
+/** Cap for RequestHeapFrame (bytes). */
+const CB_HEAP_MAX = 256 * 1024;
+/** Cap for SetLoadedAccountsDataSizeLimit (bytes). */
+const CB_LOADED_ACCOUNTS_MAX = 64 * 1024 * 1024;
 
 export type GasPrepareInput = {
   from: string;
@@ -246,10 +284,31 @@ function readU64LE(data: Buffer, offset: number): bigint {
   return data.readBigUInt64LE(offset);
 }
 
+/** Wallet guard ixs (Lighthouse/Memo) must not touch the fee payer. */
+function assertWalletGuardKeys(
+  ix: TransactionInstruction,
+  relayer: Keypair,
+  label: string,
+): void {
+  for (const meta of ix.keys) {
+    if (!meta.pubkey.equals(relayer.publicKey)) continue;
+    if (meta.isSigner || meta.isWritable) {
+      throw Object.assign(
+        new Error(
+          `${label} instruction must not use the Ghost relayer as signer/writable`,
+        ),
+        { statusCode: 400 },
+      );
+    }
+  }
+}
+
 /**
  * Strict sponsored-tx policy:
  * - feePayer = relayer
- * - only ComputeBudget (capped), one CreateIdempotent ATA for transfer dest, one TransferChecked
+ * - ComputeBudget (capped; limit+price required; heap/loaded-accounts optional)
+ * - one CreateIdempotent ATA for transfer dest, one TransferChecked
+ * - optional Lighthouse + Memo (wallet-injected; no relayer signer/writable)
  * - no Approve / SetAuthority / Transfer / etc.
  * - relayer must not appear in TransferChecked keys (not authority/source)
  */
@@ -276,6 +335,8 @@ export function assertSponsoredTransferTx(
   let ataIx: TransactionInstruction | null = null;
   let sawLimit = false;
   let sawPrice = false;
+  let lighthouseCount = 0;
+  let memoCount = 0;
 
   for (const ix of tx.instructions) {
     const prog = ix.programId.toBase58();
@@ -289,9 +350,11 @@ export function assertSponsoredTransferTx(
           });
         }
         const units = readU32LE(Buffer.from(ix.data), 1);
-        if (units > GAS_CU_LIMIT) {
+        if (units > GAS_CU_LIMIT_MAX) {
           throw Object.assign(
-            new Error(`Compute unit limit ${units} exceeds max ${GAS_CU_LIMIT}`),
+            new Error(
+              `Compute unit limit ${units} exceeds max ${GAS_CU_LIMIT_MAX}`,
+            ),
             { statusCode: 400 },
           );
         }
@@ -305,13 +368,48 @@ export function assertSponsoredTransferTx(
           });
         }
         const price = readU64LE(Buffer.from(ix.data), 1);
-        if (price > BigInt(GAS_CU_PRICE)) {
+        if (price > BigInt(GAS_CU_PRICE_MAX)) {
           throw Object.assign(
-            new Error(`Priority fee ${price} exceeds max ${GAS_CU_PRICE}`),
+            new Error(
+              `Priority fee ${price} exceeds max ${GAS_CU_PRICE_MAX}`,
+            ),
             { statusCode: 400 },
           );
         }
         sawPrice = true;
+        continue;
+      }
+      if (tag === CB_REQUEST_HEAP) {
+        if (ix.data.length < 5) {
+          throw Object.assign(new Error("Malformed compute budget heap frame"), {
+            statusCode: 400,
+          });
+        }
+        const heap = readU32LE(Buffer.from(ix.data), 1);
+        if (heap > CB_HEAP_MAX) {
+          throw Object.assign(
+            new Error(`Compute budget heap frame ${heap} exceeds max ${CB_HEAP_MAX}`),
+            { statusCode: 400 },
+          );
+        }
+        continue;
+      }
+      if (tag === CB_SET_LOADED_ACCOUNTS_DATA_SIZE) {
+        if (ix.data.length < 5) {
+          throw Object.assign(
+            new Error("Malformed compute budget loaded-accounts limit"),
+            { statusCode: 400 },
+          );
+        }
+        const loaded = readU32LE(Buffer.from(ix.data), 1);
+        if (loaded > CB_LOADED_ACCOUNTS_MAX) {
+          throw Object.assign(
+            new Error(
+              `Loaded accounts data size ${loaded} exceeds max ${CB_LOADED_ACCOUNTS_MAX}`,
+            ),
+            { statusCode: 400 },
+          );
+        }
         continue;
       }
       throw Object.assign(new Error("Unsupported compute budget instruction"), {
@@ -370,9 +468,44 @@ export function assertSponsoredTransferTx(
       continue;
     }
 
-    throw Object.assign(new Error(`Program not allowlisted: ${prog}`), {
-      statusCode: 400,
-    });
+    if (prog === LIGHTHOUSE_PROGRAM_ID.toBase58()) {
+      lighthouseCount += 1;
+      if (lighthouseCount > MAX_LIGHTHOUSE_IXS) {
+        throw Object.assign(
+          new Error(
+            `Too many Lighthouse assertion instructions (max ${MAX_LIGHTHOUSE_IXS})`,
+          ),
+          { statusCode: 400 },
+        );
+      }
+      assertWalletGuardKeys(ix, relayer, "Lighthouse");
+      continue;
+    }
+
+    if (prog === MEMO_PROGRAM_ID.toBase58()) {
+      memoCount += 1;
+      if (memoCount > MAX_MEMO_IXS) {
+        throw Object.assign(
+          new Error(`Too many Memo instructions (max ${MAX_MEMO_IXS})`),
+          { statusCode: 400 },
+        );
+      }
+      if (ix.data.length > MAX_MEMO_BYTES) {
+        throw Object.assign(
+          new Error(`Memo too large (${ix.data.length}; max ${MAX_MEMO_BYTES})`),
+          { statusCode: 400 },
+        );
+      }
+      assertWalletGuardKeys(ix, relayer, "Memo");
+      continue;
+    }
+
+    throw Object.assign(
+      new Error(
+        `Program not allowlisted: ${prog} (allowed: ComputeBudget, Token/Token-2022 TransferChecked, ATA create, Lighthouse, Memo)`,
+      ),
+      { statusCode: 400 },
+    );
   }
 
   if (!transferIx) {

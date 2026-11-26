@@ -3,6 +3,9 @@ import { getMint, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-to
 import { RELAYER_URL, RPC_URL, CLUSTER } from "./config";
 import { explorerTx } from "./addresses";
 
+/** How long we keep retrying prepare→sign→submit when Solana blockhash expires. */
+export const GAS_SEND_WINDOW_MS = 5 * 60 * 1000;
+
 export type GasConfig = {
   enabled: boolean;
   feePayer: string;
@@ -29,6 +32,16 @@ function bytesToB64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
+function isBlockhashError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("blockhash not found") ||
+    m.includes("blockhash expired") ||
+    m.includes("block height exceeded") ||
+    m.includes("transaction has expired")
+  );
+}
+
 export async function fetchGasConfig(): Promise<GasConfig> {
   const res = await fetch(`${RELAYER_URL}/v1/gas/config`, { cache: "no-store" });
   if (!res.ok) throw new Error("Could not load Ghost Gas config");
@@ -46,18 +59,13 @@ export async function fetchMintDecimals(mint: string): Promise<number> {
   return m.decimals;
 }
 
-/**
- * Prepare + sign + submit a Ghost-sponsored SPL transfer.
- * Debits prepaid gas note (X1 credit) and pays SOL as feePayer.
- */
-export async function sponsoredTransfer(params: {
+async function prepareSponsoredTx(params: {
   from: string;
   to: string;
   mint: string;
   amountRaw: string;
   gasNote: string;
-  signTransaction: <T extends Transaction>(tx: T) => Promise<T>;
-}): Promise<{ signature: string; explorer: string; creditRemaining: string }> {
+}): Promise<string> {
   const prepRes = await fetch(`${RELAYER_URL}/v1/gas/prepare`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -73,19 +81,18 @@ export async function sponsoredTransfer(params: {
   if (!prepRes.ok) {
     throw new Error(prepJson.error || "Ghost Gas prepare failed");
   }
+  return String(prepJson.transaction);
+}
 
-  const tx = Transaction.from(b64ToBytes(prepJson.transaction as string));
-  const signed = await params.signTransaction(tx);
-  const serialized = signed.serialize({
-    requireAllSignatures: false,
-    verifySignatures: false,
-  });
-
+async function submitSponsoredTx(params: {
+  transactionB64: string;
+  gasNote: string;
+}): Promise<{ signature: string; explorer: string; creditRemaining: string }> {
   const subRes = await fetch(`${RELAYER_URL}/v1/gas/submit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      transaction: bytesToB64(serialized),
+      transaction: params.transactionB64,
       gasNote: params.gasNote,
     }),
   });
@@ -93,7 +100,6 @@ export async function sponsoredTransfer(params: {
   if (!subRes.ok) {
     throw new Error(subJson.error || "Ghost Gas submit failed");
   }
-
   const signature = String(subJson.signature);
   const creditRemaining = String(subJson.creditRemaining ?? "");
   return {
@@ -101,6 +107,68 @@ export async function sponsoredTransfer(params: {
     explorer: subJson.explorer || explorerTx(signature),
     creditRemaining,
   };
+}
+
+/**
+ * Prepare + sign + submit a Ghost-sponsored SPL transfer.
+ * Debits prepaid gas note (X1 credit) and pays SOL as feePayer.
+ *
+ * Solana blockhashes only last ~60–90s. If the stamp expires (slow wallet
+ * approve), we re-prepare and ask for another signature for up to 5 minutes
+ * from the first attempt — you cannot extend a single blockhash to 5 minutes.
+ */
+export async function sponsoredTransfer(params: {
+  from: string;
+  to: string;
+  mint: string;
+  amountRaw: string;
+  gasNote: string;
+  signTransaction: <T extends Transaction>(tx: T) => Promise<T>;
+}): Promise<{ signature: string; explorer: string; creditRemaining: string }> {
+  const deadline = Date.now() + GAS_SEND_WINDOW_MS;
+  let lastError: Error | null = null;
+  let attempt = 0;
+
+  while (Date.now() < deadline) {
+    attempt += 1;
+    try {
+      const transactionB64 = await prepareSponsoredTx({
+        from: params.from,
+        to: params.to,
+        mint: params.mint,
+        amountRaw: params.amountRaw,
+        gasNote: params.gasNote,
+      });
+      const tx = Transaction.from(b64ToBytes(transactionB64));
+      const signed = await params.signTransaction(tx);
+      const serialized = signed.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
+      return await submitSponsoredTx({
+        transactionB64: bytesToB64(serialized),
+        gasNote: params.gasNote,
+      });
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      lastError = err;
+      const remaining = deadline - Date.now();
+      if (!isBlockhashError(err.message) || remaining <= 0) {
+        throw err;
+      }
+      // Stamp expired — loop for a fresh prepare + wallet approve within the window.
+      if (attempt >= 8) {
+        throw new Error(
+          `${err.message} (retried ${attempt} times within 5 minutes — try Send again)`,
+        );
+      }
+    }
+  }
+
+  throw (
+    lastError ??
+    new Error("Send window expired after 5 minutes — try Send again")
+  );
 }
 
 export function toRawAmount(uiAmount: string, decimals: number): string {
