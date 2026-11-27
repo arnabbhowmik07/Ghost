@@ -19,10 +19,12 @@ export function Nav() {
 
   useEffect(() => {
     const on = () => {
+      // Dark full-bleed tops (e.g. team hero photo) need the solid logo pill.
+      const onDark = !!document.querySelector("[data-nav-on-dark]");
       // the paper hero is the only place the bare logo sits cleanly
       const heroEnd = (document.querySelector("header")?.offsetHeight ?? 260) - 60;
-      setCompact(window.scrollY > heroEnd);
-      if (window.scrollY <= heroEnd) setOpen(false);
+      setCompact(onDark || window.scrollY > heroEnd);
+      if (!onDark && window.scrollY <= heroEnd) setOpen(false);
     };
     on();
     window.addEventListener("scroll", on, { passive: true });

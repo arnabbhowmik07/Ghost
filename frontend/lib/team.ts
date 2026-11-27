@@ -49,6 +49,16 @@ export const TEAM: TeamMember[] = [
     featured: true,
   },
   {
+    id: "konan",
+    firstName: "Konan",
+    lastName: "",
+    role: "Head of Design",
+    image: "/team/konan.jpg",
+    imageAlt: "Konan, head of design at Ghost Labs",
+    x: "https://x.com/konaniie",
+    xHandle: "@konaniie",
+  },
+  {
     id: "joseph",
     firstName: "Joseph",
     lastName: "Emmanuel",

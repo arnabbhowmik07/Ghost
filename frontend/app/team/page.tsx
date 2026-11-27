@@ -69,18 +69,22 @@ function PersonCard({
   person,
   priority,
   className = "",
+  aspectClass = "aspect-[4/5]",
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw",
 }: {
   person: CardPerson;
   priority?: boolean;
   className?: string;
+  aspectClass?: string;
+  sizes?: string;
 }) {
   return (
     <li id={person.id} className={`scroll-mt-28 min-w-0 ${className}`}>
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-sand">
+      <div className={`relative w-full overflow-hidden bg-sand ${aspectClass}`}>
         <Portrait
           person={person}
           priority={priority}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+          sizes={sizes}
         />
       </div>
       <div className="mt-3 border-t border-ink/15 pt-3">
@@ -166,7 +170,23 @@ export default function TeamPage() {
       />
 
       <main>
-        <header className="gutter border-b border-ink/10 bg-paper pb-12 pt-28 md:pb-14 md:pt-36">
+        <div
+          data-nav-on-dark
+          className="relative w-full overflow-hidden bg-night"
+        >
+          <div className="relative aspect-[1672/941] w-full">
+            <Image
+              src="/team/hero.jpg"
+              alt="Ghost Labs team at BNB Hack Bengaluru — hackathon winners"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </div>
+        </div>
+
+        <header className="gutter border-b border-ink/10 bg-paper pb-12 pt-10 md:pb-14 md:pt-12">
           <div className="grid items-end gap-6 md:grid-cols-[1fr_minmax(0,380px)]">
             <h1 className="t-56">Team</h1>
             <p className="t-16 max-w-[34ch] font-normal leading-[1.45] text-ink/60">
@@ -205,9 +225,14 @@ export default function TeamPage() {
               Experienced operators advising Ghost Labs.
             </p>
           </div>
-          <ul className="mx-auto grid max-w-[520px] grid-cols-2 gap-x-4 gap-y-10 md:max-w-[640px] md:gap-x-6">
+          <ul className="mx-auto grid max-w-[960px] grid-cols-1 gap-y-10 md:grid-cols-2 md:gap-x-6 md:gap-y-12">
             {ADVISORS.map((advisor) => (
-              <PersonCard key={advisor.id} person={advisor} />
+              <PersonCard
+                key={advisor.id}
+                person={advisor}
+                aspectClass="aspect-[16/9]"
+                sizes="(max-width: 768px) 100vw, 480px"
+              />
             ))}
           </ul>
         </section>
