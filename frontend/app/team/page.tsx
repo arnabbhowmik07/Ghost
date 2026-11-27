@@ -170,28 +170,22 @@ export default function TeamPage() {
       />
 
       <main>
-        <div
-          data-nav-on-dark
-          className="relative w-full overflow-hidden bg-night"
-        >
-          <div className="relative aspect-[1672/941] w-full">
-            <Image
-              src="/team/hero.jpg"
-              alt="Ghost Labs team at BNB Hack Bengaluru — hackathon winners"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-          </div>
-        </div>
-
-        <header className="gutter border-b border-ink/10 bg-paper pb-12 pt-10 md:pb-14 md:pt-12">
+        <header className="gutter border-b border-ink/10 bg-paper pb-10 pt-28 md:pb-12 md:pt-36">
           <div className="grid items-end gap-6 md:grid-cols-[1fr_minmax(0,380px)]">
             <h1 className="t-56">Team</h1>
             <p className="t-16 max-w-[34ch] font-normal leading-[1.45] text-ink/60">
               Ghost Labs — the people behind prepaid gas on Solana.
             </p>
+          </div>
+          <div className="relative mx-auto mt-8 aspect-[1672/941] w-full max-w-[720px] overflow-hidden bg-night md:mt-10">
+            <Image
+              src="/team/hero.jpg"
+              alt="Ghost Labs team at BNB Hack Bengaluru — hackathon winners"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 720px"
+              className="object-cover object-center"
+            />
           </div>
         </header>
 
