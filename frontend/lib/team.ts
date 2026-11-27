@@ -89,6 +89,16 @@ export const TEAM: TeamMember[] = [
     xHandle: "@abdyweb3",
   },
   {
+    id: "christopher",
+    firstName: "Christopher",
+    lastName: "Eniayemo",
+    role: "Community Manager",
+    image: "/team/christopher.jpg",
+    imageAlt: "Christopher Eniayemo, community manager at Ghost Labs",
+    x: "https://x.com/eniayemoHQ",
+    xHandle: "@eniayemoHQ",
+  },
+  {
     id: "solosufi",
     firstName: "SoloSufi",
     lastName: "AbMajid",
