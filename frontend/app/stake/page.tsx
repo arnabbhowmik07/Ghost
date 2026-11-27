@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 };
 
 const stats = [
-  { label: "APY", value: "—" },
-  { label: "Total Staked", value: "—" },
-  { label: "Your Stake", value: "—" },
-  { label: "Rewards Earned", value: "—" },
+  { label: "APY", value: "-" },
+  { label: "Total Staked", value: "-" },
+  { label: "Your Stake", value: "-" },
+  { label: "Rewards Earned", value: "-" },
 ] as const;
 
 const steps = [
@@ -36,7 +36,7 @@ const steps = [
   },
   {
     title: "Rewards from treasury",
-    body: "Rewards stream from the Ghost treasury — not from opaque inflation by default.",
+    body: "Rewards stream from the Ghost treasury - not from opaque inflation by default.",
   },
   {
     title: "Unstake on your terms",

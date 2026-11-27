@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/links";
 
-/** Public marketing + legal URLs. App routes (/app/*) stay out — they require a wallet. */
+/** Public marketing + legal URLs. App routes (/app/*) stay out - they require a wallet. */
 export const SITEMAP_ROUTES: {
   path: string;
   changeFrequency: NonNullable<
@@ -43,7 +43,7 @@ export function buildSitemapEntries(
   }));
 }
 
-/** Raw XML for /sitemap (extensionless) — more reliable behind Cloudflare for Googlebot. */
+/** Raw XML for /sitemap (extensionless) - more reliable behind Cloudflare for Googlebot. */
 export function buildSitemapXml(lastModified: Date = new Date()): string {
   const entries = buildSitemapEntries(lastModified);
   const body = entries

@@ -37,7 +37,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/app/"],
       })),
     ],
-    // Prefer extensionless /sitemap — Cloudflare sometimes interferes with *.xml for Googlebot.
+    // Prefer extensionless /sitemap - Cloudflare sometimes interferes with *.xml for Googlebot.
     sitemap: [`${SITE_URL}/sitemap`, `${SITE_URL}/sitemap.xml`],
   };
 }

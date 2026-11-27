@@ -1,5 +1,5 @@
 /**
- * Ghost Labs team — single source for /team and related JSON-LD.
+ * Ghost Labs team - single source for /team and related JSON-LD.
  */
 
 export type TeamMember = {
@@ -7,7 +7,7 @@ export type TeamMember = {
   firstName: string;
   lastName: string;
   role: string;
-  /** Optional — missing image renders an initials tile. */
+  /** Optional - missing image renders an initials tile. */
   image?: string;
   imageAlt: string;
   x?: string;
@@ -59,6 +59,16 @@ export const TEAM: TeamMember[] = [
     imageAlt: "Saish Korgaonkar, core developer at Ghost Labs",
     x: "https://x.com/saishh_k",
     xHandle: "@saishh_k",
+  },
+  {
+    id: "om",
+    firstName: "Om",
+    lastName: "Lanke",
+    role: "Core Developer",
+    image: "/team/om.jpg",
+    imageAlt: "Om Lanke, core developer at Ghost Labs",
+    x: "https://x.com/myboi149",
+    xHandle: "@myboi149",
   },
   {
     id: "konan",

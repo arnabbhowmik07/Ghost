@@ -1,6 +1,6 @@
 # Ghost
 
-> Prepaid gas for Solana. Fund credit once. Send tokens with zero SOL — without a SOL handoff that links wallets.
+> Prepaid gas for Solana. Fund credit once. Send tokens with zero SOL - without a SOL handoff that links wallets.
 
 Ghost (Ghost Labs) builds **Ghost Gas**: prepaid USDC fee credit so an alt wallet can sign SPL transfers while Ghost pays Solana network fees as `feePayer`.
 
@@ -10,7 +10,7 @@ Ghost (Ghost Labs) builds **Ghost Gas**: prepaid USDC fee credit so an alt walle
 - Network: Solana
 - Core idea: X1 prepays → gas note (`ghost-gas:v1:…`) → X2 signs with 0 SOL → Ghost pays SOL and debits a flat USDC fee from the note
 - Default fee: 0.01 USDC per sponsored send
-- Optional: Ghost Shield (private fixed-denomination USDC pool) — separate from Gas
+- Optional: Ghost Shield (private fixed-denomination USDC pool) - separate from Gas
 
 ## Why it exists
 

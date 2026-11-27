@@ -1,6 +1,6 @@
 /**
  * Staking / token flags for the marketing site.
- * Flip STAKING_ENABLED and set DEXSCREENER_PAIR to go live — no other code changes.
+ * Flip STAKING_ENABLED and set DEXSCREENER_PAIR to go live - no other code changes.
  *
  * Social and footer URLs live in `@/lib/links` so they never drift.
  */

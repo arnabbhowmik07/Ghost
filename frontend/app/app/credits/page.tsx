@@ -294,7 +294,7 @@ export default function CreditsPage() {
           <p className="mt-2 text-[13px] font-normal leading-relaxed text-ink/70">
             Your transfer went on-chain, but Ghost could not issue a gas note. If
             the funds were credited to Ghost, they will be refunded within 48
-            hours — or reach support at{" "}
+            hours - or reach support at{" "}
             <a
               href="mailto:support@ghostlabshq.xyz"
               className="underline underline-offset-2"

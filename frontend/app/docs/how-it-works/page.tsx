@@ -31,14 +31,14 @@ export default function HowItWorksDocsPage() {
       <DocsH2>The pain</DocsH2>
       <DocsP>
         On Solana, every send needs SOL for fees. A wallet with tokens but no SOL
-        is stuck. The usual fix is a SOL top-up from a primary wallet — and that
+        is stuck. The usual fix is a SOL top-up from a primary wallet - and that
         transfer is public forever.
       </DocsP>
       <DocsList
         items={[
           "Alt wallets need SOL to move tokens.",
           "Someone has to send SOL first.",
-          "That funding link is the leak — privacy breaks before the real transfer.",
+          "That funding link is the leak - privacy breaks before the real transfer.",
         ]}
       />
 
@@ -53,11 +53,11 @@ export default function HowItWorksDocsPage() {
       <dl className="mt-6 grid gap-6 border-t border-ink/15 pt-6 sm:grid-cols-2">
         {[
           {
-            t: "X1 — primary wallet",
+            t: "X1 - primary wallet",
             d: "Pays USDC (or an allowlisted asset) once and receives a gas note.",
           },
           {
-            t: "X2 — signing wallet",
+            t: "X2 - signing wallet",
             d: "Holds tokens, attaches the note, signs. Can have zero SOL.",
           },
           {
@@ -101,7 +101,7 @@ export default function HowItWorksDocsPage() {
       <DocsH2>What observers see</DocsH2>
       <DocsP>
         Without Ghost, explorers can show that the alt was funded by your main
-        wallet. With Ghost, the alt was never funded with SOL by that wallet —
+        wallet. With Ghost, the alt was never funded with SOL by that wallet -
         the fee came from Ghost’s relayer, paid for by prepaid USDC credit.
       </DocsP>
     </DocsShell>

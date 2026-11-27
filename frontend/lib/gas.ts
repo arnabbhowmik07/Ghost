@@ -115,7 +115,7 @@ async function submitSponsoredTx(params: {
  *
  * Solana blockhashes only last ~60–90s. If the stamp expires (slow wallet
  * approve), we re-prepare and ask for another signature for up to 5 minutes
- * from the first attempt — you cannot extend a single blockhash to 5 minutes.
+ * from the first attempt - you cannot extend a single blockhash to 5 minutes.
  */
 export async function sponsoredTransfer(params: {
   from: string;
@@ -156,10 +156,10 @@ export async function sponsoredTransfer(params: {
       if (!isBlockhashError(err.message) || remaining <= 0) {
         throw err;
       }
-      // Stamp expired — loop for a fresh prepare + wallet approve within the window.
+      // Stamp expired - loop for a fresh prepare + wallet approve within the window.
       if (attempt >= 8) {
         throw new Error(
-          `${err.message} (retried ${attempt} times within 5 minutes — try Send again)`,
+          `${err.message} (retried ${attempt} times within 5 minutes - try Send again)`,
         );
       }
     }
@@ -167,7 +167,7 @@ export async function sponsoredTransfer(params: {
 
   throw (
     lastError ??
-    new Error("Send window expired after 5 minutes — try Send again")
+    new Error("Send window expired after 5 minutes - try Send again")
   );
 }
 

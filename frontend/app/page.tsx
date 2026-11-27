@@ -22,7 +22,7 @@ const pillars = [
   {
     title: "Prepaid",
     sub: ["Fund once.", "Spend many times."],
-    body: "X1 tops up USDC into Ghost and gets a gas note. That credit pays network fees later — without ever sending SOL to the signing wallet.",
+    body: "X1 tops up USDC into Ghost and gets a gas note. That credit pays network fees later - without ever sending SOL to the signing wallet.",
     bg: "#625e5f",
     kind: "lock" as const,
   },
@@ -157,7 +157,7 @@ export default function Home() {
             </h1>
             <p className="t-24 max-w-[584px]">
               Fund credit once. Any wallet can send tokens with zero SOL. Ghost pays the network
-              fee and debits the note — no SOL handoff that leaks who bankrolled whom.
+              fee and debits the note - no SOL handoff that leaks who bankrolled whom.
             </p>
           </div>
         </header>
@@ -298,7 +298,7 @@ export default function Home() {
             <Reveal>
               <p className="t-32 max-w-[640px]">
                 Prepaid credit means X2 never needs SOL. The note stays with you, Ghost sponsors
-                each send, and a flat USDC fee comes out of the credit — not a SOL transfer from X1
+                each send, and a flat USDC fee comes out of the credit - not a SOL transfer from X1
                 to X2.
               </p>
               <dl className="mt-12 grid max-w-[640px] grid-cols-3 border-t border-ink/15">
@@ -372,7 +372,7 @@ export default function Home() {
             <Reveal>
               <p className="t-24 max-w-[560px]">
                 X1 prepays. X2 signs. Ghost pays the network fee from the note. No SOL handoff
-                between them — that link is the leak Gas is built to avoid.
+                between them - that link is the leak Gas is built to avoid.
               </p>
             </Reveal>
             <div>

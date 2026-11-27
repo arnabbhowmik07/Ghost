@@ -10,7 +10,7 @@ import {
 export const metadata: Metadata = {
   title: "Trust model",
   description:
-    "What Ghost Gas enforces on-chain vs what you trust the relayer for — honest security model.",
+    "What Ghost Gas enforces on-chain vs what you trust the relayer for - honest security model.",
   alternates: { canonical: "/docs/trust" },
 };
 
@@ -71,7 +71,7 @@ export default function TrustDocsPage() {
         Because credit accounting is off-chain today, a malicious operator could
         mis-debit notes or refuse service. Sponsored sends still move tokens only
         with the user’s signature and only along the allowlisted instruction
-        shape — Ghost does not take custody of the transferred SPL on a normal
+        shape - Ghost does not take custody of the transferred SPL on a normal
         Gas send.
       </DocsP>
 

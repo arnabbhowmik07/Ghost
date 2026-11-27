@@ -38,7 +38,7 @@ export default function GasNotesDocsPage() {
           "Connect a funded wallet at /app/credits.",
           "Deposit USDC (or an allowlisted asset) to the Ghost treasury.",
           "Ghost verifies the deposit on-chain and returns a gas note.",
-          "Save the note immediately — Ghost cannot re-issue the same secret.",
+          "Save the note immediately - Ghost cannot re-issue the same secret.",
         ]}
       />
 
@@ -67,7 +67,7 @@ export default function GasNotesDocsPage() {
       <DocsP>
         Credit is denominated in USDC micro-units. Each successful sponsored send
         debits a flat fee (default 0.01 USDC). Failed sends that never land should
-        not keep the debit — the relayer refunds reserved credit when submission
+        not keep the debit - the relayer refunds reserved credit when submission
         fails after reserve.
       </DocsP>
     </DocsShell>

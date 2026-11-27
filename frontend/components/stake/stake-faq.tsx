@@ -19,11 +19,11 @@ const items = [
   },
   {
     q: "Is there a lockup or cooldown?",
-    a: "Final parameters ship with the staking contracts. Expect either flexible unstake or a short cooldown — this page will reflect the live rules.",
+    a: "Final parameters ship with the staking contracts. Expect either flexible unstake or a short cooldown - this page will reflect the live rules.",
   },
   {
     q: "Where do rewards come from?",
-    a: "Protocol fees collected by Ghost Gas (and related products) flow into a treasury. A defined share is streamed to stakers — not inflation by default.",
+    a: "Protocol fees collected by Ghost Gas (and related products) flow into a treasury. A defined share is streamed to stakers - not inflation by default.",
   },
   {
     q: `Does staking affect Ghost Gas credits?`,

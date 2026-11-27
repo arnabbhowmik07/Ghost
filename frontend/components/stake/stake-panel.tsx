@@ -74,7 +74,7 @@ export function StakePanel() {
                 </span>
               </div>
               <p className="t-14 font-normal text-ink/45">
-                Balance: {live ? `0.00 ${TOKEN_SYMBOL}` : "—"}
+                Balance: {live ? `0.00 ${TOKEN_SYMBOL}` : "-"}
               </p>
             </div>
 
@@ -88,7 +88,7 @@ export function StakePanel() {
             </Button>
             <p className="t-14 font-normal leading-[1.45] text-ink/45">
               {live
-                ? "UI is live. On-chain staking contracts are not wired yet — no transactions will be sent."
+                ? "UI is live. On-chain staking contracts are not wired yet - no transactions will be sent."
                 : `Staking ${TOKEN_SYMBOL} opens at token launch. This panel stays read-only until then.`}
             </p>
           </TabsContent>

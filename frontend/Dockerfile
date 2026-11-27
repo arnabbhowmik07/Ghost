@@ -21,7 +21,7 @@ COPY frontend ./frontend
 COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
 COPY --from=deps /app/sdk/node_modules ./sdk/node_modules
 
-# PUBLIC BUILD-TIME — must be present at `next build`
+# PUBLIC BUILD-TIME - must be present at `next build`
 ARG NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
 ARG NEXT_PUBLIC_CLUSTER=devnet
 ARG NEXT_PUBLIC_RELAYER_URL=https://ghost-api.arnabbhowmik.in

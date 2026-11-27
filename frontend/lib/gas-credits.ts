@@ -97,14 +97,14 @@ export async function quoteGasCredit(params: {
   return json as CreditQuote;
 }
 
-/** On-chain transfer succeeded but Ghost did not issue a note — refund path. */
+/** On-chain transfer succeeded but Ghost did not issue a note - refund path. */
 export class GasCreditDepositPendingError extends Error {
   readonly depositTx: string;
   readonly fundsTransferred = true as const;
 
   constructor(cause: string, depositTx: string) {
     super(
-      `${cause} Your deposit was sent on-chain. If Ghost received the funds, they will be refunded within 48 hours — or reach support at support@ghostlabshq.xyz.`,
+      `${cause} Your deposit was sent on-chain. If Ghost received the funds, they will be refunded within 48 hours - or reach support at support@ghostlabshq.xyz.`,
     );
     this.name = "GasCreditDepositPendingError";
     this.depositTx = depositTx;
@@ -208,7 +208,7 @@ export async function topUpGasCredits(params: {
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
   const signed = await params.signTransaction(tx);
 
-  /** Set once the transfer is broadcast — any later failure may leave funds with Ghost. */
+  /** Set once the transfer is broadcast - any later failure may leave funds with Ghost. */
   let depositTx: string | undefined;
   try {
     depositTx = await connection.sendRawTransaction(signed.serialize());

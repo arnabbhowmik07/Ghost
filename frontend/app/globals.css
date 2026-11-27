@@ -164,7 +164,7 @@
   }
 }
 
-/* Soft paper texture — much quieter than the old classical grain */
+/* Soft paper texture - much quieter than the old classical grain */
 body::before {
   content: "";
   pointer-events: none;
@@ -265,7 +265,7 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-/* App workspace — quiet enter for primary column */
+/* App workspace - quiet enter for primary column */
 .app-workspace > header {
   animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

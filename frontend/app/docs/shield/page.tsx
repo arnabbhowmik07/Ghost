@@ -55,7 +55,7 @@ export default function ShieldDocsPage() {
       <DocsList
         items={[
           "Deposit a fixed denomination (1 USDC) into the pool with a commitment.",
-          "Save the deposit note — it proves which leaf you own.",
+          "Save the deposit note - it proves which leaf you own.",
           "Later, prove Merkle inclusion + nullifier in a Groth16 proof bound to a recipient.",
           "Relayer submits withdraw; nullifier prevents double-spend; fee may go to pool treasury.",
         ]}
@@ -71,7 +71,7 @@ export default function ShieldDocsPage() {
       <DocsH2>Trust note</DocsH2>
       <DocsP>
         Shield’s lean path still leans on relayer-assisted verification for some
-        steps. A malicious Shield relayer is a vault risk — different from Gas
+        steps. A malicious Shield relayer is a vault risk - different from Gas
         fee sponsorship. Read the trust model page for Gas, and treat Shield as
         higher stakes until audits and on-chain verification land.
       </DocsP>

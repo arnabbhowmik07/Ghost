@@ -87,7 +87,7 @@ export default function ApiDocsPage() {
       <DocsP>
         Sponsored transactions are fail-closed: only allowlisted instruction
         shapes, fee caps, and rate limits. Deposits require a fresh, matching
-        treasury transfer — risky Token-2022 shapes are rejected.
+        treasury transfer - risky Token-2022 shapes are rejected.
       </DocsP>
 
       <DocsH2>Base URL</DocsH2>

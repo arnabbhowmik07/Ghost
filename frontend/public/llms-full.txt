@@ -1,4 +1,4 @@
-# Ghost — full brief for answer engines
+# Ghost - full brief for answer engines
 
 Last updated: 2026-11-24
 Canonical site: https://ghostlabshq.xyz
@@ -67,9 +67,9 @@ A malicious relayer is a real risk for credit accounting (and for Shield withdra
 
 ## APIs (relayer)
 
-- `POST /v1/gas/credits/deposit` — credit a note after verified deposit
-- `POST /v1/gas/prepare` — build sponsored tx (requires gasNote)
-- `POST /v1/gas/submit` — feePayer co-sign + debit (requires gasNote)
+- `POST /v1/gas/credits/deposit` - credit a note after verified deposit
+- `POST /v1/gas/prepare` - build sponsored tx (requires gasNote)
+- `POST /v1/gas/submit` - feePayer co-sign + debit (requires gasNote)
 
 ## FAQs
 
@@ -90,7 +90,7 @@ A: Solana.
 
 ## Docs map
 
-- https://ghostlabshq.xyz/docs — hub
+- https://ghostlabshq.xyz/docs - hub
 - https://ghostlabshq.xyz/docs/how-it-works
 - https://ghostlabshq.xyz/docs/gas-notes
 - https://ghostlabshq.xyz/docs/fees

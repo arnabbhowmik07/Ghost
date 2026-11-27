@@ -20,7 +20,7 @@ export function WalletGuard({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(t);
   }, []);
 
-  // Never show the Connect modal on /app — send users to /login instead.
+  // Never show the Connect modal on /app - send users to /login instead.
   useEffect(() => {
     if (modalOpen) void close();
   }, [modalOpen, close]);

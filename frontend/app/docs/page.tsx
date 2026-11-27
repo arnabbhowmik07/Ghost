@@ -99,7 +99,7 @@ export default function DocsPage() {
           "Not a mixer or tumbler.",
           "Not a custodial exchange.",
           "Not the same product as Ghost Shield.",
-          "Not a promise that explorers cannot see the SPL transfer itself — only that X1 never has to fund X2 with SOL for gas.",
+          "Not a promise that explorers cannot see the SPL transfer itself - only that X1 never has to fund X2 with SOL for gas.",
         ]}
       />
 

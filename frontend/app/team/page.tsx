@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "Meet the Ghost Labs team building prepaid gas and private rails for Solana.",
   alternates: { canonical: "/team" },
   openGraph: {
-    title: "Team — Ghost Labs",
+    title: "Team - Ghost Labs",
     description:
       "Meet the Ghost Labs team building prepaid gas and private rails for Solana.",
     url: `${SITE_URL}/team`,
@@ -172,13 +172,13 @@ export default function TeamPage() {
           <div className="grid items-end gap-6 md:grid-cols-[1fr_minmax(0,380px)]">
             <h1 className="t-56">Team</h1>
             <p className="t-16 max-w-[34ch] font-normal leading-[1.45] text-ink/60">
-              Ghost Labs — the people behind prepaid gas on Solana.
+              Ghost Labs - the people behind prepaid gas on Solana.
             </p>
           </div>
           <div className="relative mx-auto mt-8 aspect-[1672/941] w-full max-w-[1100px] overflow-hidden bg-night md:mt-10">
             <Image
               src="/team/hero.jpg"
-              alt="Ghost Labs team at BNB Hack Bengaluru — hackathon winners"
+              alt="Ghost Labs team at BNB Hack Bengaluru - hackathon winners"
               fill
               priority
               sizes="(max-width: 1100px) 100vw, 1100px"
@@ -188,14 +188,14 @@ export default function TeamPage() {
         </header>
 
         <section className="gutter py-12 md:py-16">
-          {/* Co-founders — same cards, centered pair */}
+          {/* Co-founders - same cards, centered pair */}
           <ul className="mx-auto grid max-w-[520px] grid-cols-2 gap-x-4 gap-y-10 md:max-w-[640px] md:gap-x-6">
             {founders.map((member) => (
               <PersonCard key={member.id} person={member} priority />
             ))}
           </ul>
 
-          {/* Everyone else — same cards, centered */}
+          {/* Everyone else - same cards, centered */}
           {rest.length > 0 ? (
             <ul className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-10 border-t border-ink/10 pt-12 md:mt-16 md:gap-x-6 md:gap-y-12 md:pt-16">
               {rest.map((member) => (

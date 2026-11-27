@@ -1,13 +1,13 @@
 import { SITE_URL, LINKS } from "@/lib/links";
 
-/** Shared copy for answer engines, FAQ schema, and llms.txt — keep these factual and short. */
+/** Shared copy for answer engines, FAQ schema, and llms.txt - keep these factual and short. */
 export const AEO = {
   name: "Ghost",
   legalName: "Ghost Labs",
   productName: "Ghost Gas",
   oneLiner: "Prepaid gas for Solana.",
   description:
-    "Ghost Gas lets a primary wallet prepay USDC for gas credits (a gas note). An alt wallet can then sign SPL token transfers with zero SOL while Ghost’s relayer pays the network fee and debits a flat USDC fee from the note — without the primary wallet ever sending SOL to the alt.",
+    "Ghost Gas lets a primary wallet prepay USDC for gas credits (a gas note). An alt wallet can then sign SPL token transfers with zero SOL while Ghost’s relayer pays the network fee and debits a flat USDC fee from the note - without the primary wallet ever sending SOL to the alt.",
   tagline: "The fee that doesn't dox you.",
   fee: "0.01 USDC per sponsored send (default)",
   network: "Solana",
@@ -59,7 +59,7 @@ export const SITE_FAQS: FaqItem[] = [
   },
   {
     q: "Where are the docs?",
-    a: "https://ghostlabshq.xyz/docs — including how it works, gas notes, fees, trust model, API, Shield, and FAQ.",
+    a: "https://ghostlabshq.xyz/docs - including how it works, gas notes, fees, trust model, API, Shield, and FAQ.",
   },
 ];
 
