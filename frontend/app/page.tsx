@@ -73,72 +73,76 @@ const steps = [
 
 const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
 
+const depositTx = transactions[0];
+const withdrawTx = transactions[1];
+const proofTx = withdrawTx ?? depositTx;
+
 const cases: Case[] = [
-  {
-    title: "A deposit issued a private Ghost Note",
-    kind: "tx",
-    label: "1 USDC",
-    caption: "deposit · note issued",
+  ...(depositTx
+    ? ([
+        {
+          title: "A deposit issued a private Ghost Note",
+          kind: "tx" as const,
+          label: "1 USDC",
+          caption: "deposit · note issued",
+          meta: [
+            ["Type", "Deposit"],
+            ["Network", "Solana"],
+            ["Amount", "1 USDC"],
+          ] as [string, string][],
+          body: "The depositor sent exactly one USDC into the pool. Ghost stored a Poseidon commitment on-chain and returned a note that never leaves the browser.",
+          href: explorerTx(depositTx.hash),
+        },
+      ] satisfies Case[])
+    : []),
+  ...(withdrawTx
+    ? ([
+        {
+          title: "A withdraw with zero SOL from the recipient",
+          kind: "tx" as const,
+          label: "Gasless",
+          caption: "withdraw · relayer paid",
+          meta: [
+            ["Type", "Withdraw"],
+            ["Network", "Solana"],
+            ["Recipient SOL", "0"],
+          ] as [string, string][],
+          body: "The relayer verified the Groth16 proof off-chain, paid Solana fees, and delivered USDC to a fresh address that held zero SOL.",
+          href: explorerTx(withdrawTx.hash),
+        },
+      ] satisfies Case[])
+    : []),
+  ...contracts.map((c) => ({
+    title:
+      c.name === "ghost_pool" || c.name === "Circle USDC"
+        ? c.name === "Circle USDC"
+          ? "The USDC mint Ghost Gas settles in"
+          : "The program that holds every deposit"
+        : c.name === "Pool PDA" || c.name === "Treasury ATA"
+          ? c.name === "Treasury ATA"
+            ? "The treasury that holds prepaid credit"
+            : "The pool account that tracks commitments"
+          : "The relayer that pays fees for you",
+    kind: "contract" as const,
+    label: c.name,
+    caption: c.tags.join(" · "),
     meta: [
-      ["Type", "Deposit"],
-      ["Network", "Solana"],
-      ["Amount", "1 USDC"],
-    ],
-    body: "The depositor sent exactly one USDC into the pool. Ghost stored a Poseidon commitment on-chain and returned a note that never leaves the browser.",
-    href: explorerTx(transactions[0].hash),
-  },
-  {
-    title: "A withdraw with zero SOL from the recipient",
-    kind: "tx",
-    label: "Gasless",
-    caption: "withdraw · relayer paid",
-    meta: [
-      ["Type", "Withdraw"],
-      ["Network", "Solana"],
-      ["Recipient SOL", "0"],
-    ],
-    body: "The relayer verified the Groth16 proof off-chain, paid Solana fees, and delivered USDC to a fresh address that held zero SOL.",
-    href: explorerTx(transactions[1].hash),
-  },
-  {
-    title: "The program that holds every deposit",
-    kind: "contract",
-    label: "ghost_pool",
-    caption: "deployed program",
-    meta: [
-      ["Program", short(contracts[0].address)],
+      [c.name.includes("ATA") || c.name === "Pool PDA" ? "Account" : c.name === "Relayer" ? "Pubkey" : "Program", short(c.address)],
       ["Network", "Solana"],
       ["Status", "Live"],
-    ],
-    body: "Every deposit lands here as an anonymous fingerprint. The more deposits it holds, the harder it is for anyone to link a withdrawal to a depositor.",
-    href: explorerAddress(contracts[0].address),
-  },
-  {
-    title: "The pool account that tracks commitments",
-    kind: "contract",
-    label: "Pool PDA",
-    caption: "on-chain config",
-    meta: [
-      ["Account", short(contracts[1].address)],
-      ["Network", "Solana"],
-      ["Role", "Config + index"],
-    ],
-    body: "The pool PDA tracks the next leaf index, denomination, fee bps, and the designated relayer that may call withdraw.",
-    href: explorerAddress(contracts[1].address),
-  },
-  {
-    title: "The relayer that pays fees for you",
-    kind: "contract",
-    label: "Relayer",
-    caption: "fee payer + ZK gate",
-    meta: [
-      ["Pubkey", short(contracts[3].address)],
-      ["Network", "Solana"],
-      ["Role", "Fee payer"],
-    ],
-    body: "Before it submits withdraw, the relayer checks the proof and Merkle root off-chain. Then it fronts SOL and skims a small USDC fee from the vault.",
-    href: explorerAddress(contracts[3].address),
-  },
+    ] as [string, string][],
+    body:
+      c.name === "Circle USDC"
+        ? "Ghost Gas debits prepaid credit in Circle USDC. Same mint wallets already hold."
+        : c.name === "Treasury ATA"
+          ? "X1 deposits land here as prepaid credit. Each sponsored send debits a flat fee from the note."
+          : c.name === "Relayer"
+            ? "Before it submits, the relayer checks the request off-chain. Then it fronts SOL and skims a small USDC fee from prepaid credit."
+            : c.name === "Pool PDA"
+              ? "The pool PDA tracks the next leaf index, denomination, fee bps, and the designated relayer that may call withdraw."
+              : "Every deposit lands here as an anonymous fingerprint. The more deposits it holds, the harder it is for anyone to link a withdrawal to a depositor.",
+    href: explorerAddress(c.address),
+  })),
 ];
 
 const faqs = SITE_FAQS;
@@ -435,14 +439,18 @@ export default function Home() {
               credit and the tokens still arrived.”
             </blockquote>
             <figcaption className="t-16 font-normal">
-              <a
-                href={explorerTx(transactions[1].hash)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block hover:underline"
-              >
-                Transaction {short(transactions[1].hash)}
-              </a>
+              {proofTx ? (
+                <a
+                  href={explorerTx(proofTx.hash)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block hover:underline"
+                >
+                  Transaction {short(proofTx.hash)}
+                </a>
+              ) : (
+                <span className="block">Ghost Gas · prepaid fee credit</span>
+              )}
               <span className="text-smoke">Solana · Ghost Gas</span>
             </figcaption>
           </figure>
