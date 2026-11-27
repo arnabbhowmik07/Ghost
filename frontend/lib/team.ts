@@ -135,17 +135,17 @@ export const ADVISORS: Advisor[] = [
     id: "lucas-liao",
     firstName: "Lucas",
     lastName: "Liao",
-    role: "Advisor · BNB Chain",
+    role: "Solutions Architect · BNB Chain",
     image: "/team/lucas-liao.jpg",
-    imageAlt: "Lucas Liao, advisor at Ghost Labs",
+    imageAlt: "Lucas Liao, Solutions Architect at BNB Chain, advisor at Ghost Labs",
   },
   {
     id: "vlad",
     firstName: "Vlad",
     lastName: "",
-    role: "Advisor · BNB Chain",
+    role: "Business Developer · BNB Chain",
     image: "/team/vlad.jpg",
-    imageAlt: "Vlad, advisor at Ghost Labs",
+    imageAlt: "Vlad, Business Developer at BNB Chain, advisor at Ghost Labs",
   },
 ];
 
