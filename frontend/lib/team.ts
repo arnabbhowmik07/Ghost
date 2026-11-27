@@ -51,6 +51,16 @@ export const TEAM: TeamMember[] = [
     featured: true,
   },
   {
+    id: "saish",
+    firstName: "Saish",
+    lastName: "Korgaonkar",
+    role: "Core Developer",
+    image: "/team/saish.jpg",
+    imageAlt: "Saish Korgaonkar, core developer at Ghost Labs",
+    x: "https://x.com/saishh_k",
+    xHandle: "@saishh_k",
+  },
+  {
     id: "konan",
     firstName: "Konan",
     lastName: "",
