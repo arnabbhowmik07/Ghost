@@ -10,10 +10,19 @@ export type TeamMember = {
   /** Optional — missing image renders an initials tile. */
   image?: string;
   imageAlt: string;
-  x: string;
-  xHandle: string;
+  x?: string;
+  xHandle?: string;
   /** Featured founders render centered above the rest of the grid. */
   featured?: boolean;
+};
+
+export type Advisor = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  image: string;
+  imageAlt: string;
 };
 
 export const TEAM: TeamMember[] = [
@@ -101,11 +110,30 @@ export const TEAM: TeamMember[] = [
   },
 ];
 
-export function fullName(member: TeamMember): string {
-  return `${member.firstName} ${member.lastName}`;
+export const ADVISORS: Advisor[] = [
+  {
+    id: "lucas-liao",
+    firstName: "Lucas",
+    lastName: "Liao",
+    role: "Advisor · BNB Chain",
+    image: "/team/lucas-liao.jpg",
+    imageAlt: "Lucas Liao, advisor at Ghost Labs",
+  },
+  {
+    id: "vlad",
+    firstName: "Vlad",
+    lastName: "",
+    role: "Advisor · BNB Chain",
+    image: "/team/vlad.jpg",
+    imageAlt: "Vlad, advisor at Ghost Labs",
+  },
+];
+
+export function fullName(member: Pick<TeamMember, "firstName" | "lastName">): string {
+  return [member.firstName, member.lastName].filter(Boolean).join(" ");
 }
 
-export function initials(member: TeamMember): string {
+export function initials(member: Pick<TeamMember, "firstName" | "lastName">): string {
   const a = member.firstName[0] ?? "";
   const b = member.lastName[0] ?? member.firstName[1] ?? "";
   return `${a}${b}`.toUpperCase();

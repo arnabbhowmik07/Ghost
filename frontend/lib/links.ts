@@ -21,7 +21,7 @@ export const LINKS = {
   github: "https://github.com/arnabbhowmik07/Ghost",
   x: "https://x.com/ghostlabshq",
   telegram: "https://t.me/ghostlabshq_xyz",
-  discord: "https://discord.gg/4xsr4MRhN",
+  discord: "https://discord.gg/XSPszRsTZY",
   linkedin: "https://www.linkedin.com/company/ghostlabshq",
   ambassador: "https://forms.gle/6WNNsDzP1eyA3vhf9",
   terms: "/terms",

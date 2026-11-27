@@ -6,7 +6,7 @@ import { TurnArrow } from "@/components/landing/marks";
 import { SiteFooter } from "@/components/site-footer";
 import { JsonLd } from "@/components/json-ld";
 import { LINKS, SITE_URL } from "@/lib/links";
-import { TEAM, fullName, initials, type TeamMember } from "@/lib/team";
+import { ADVISORS, TEAM, fullName, initials } from "@/lib/team";
 import { SITE } from "@/src/config/site";
 
 export const metadata: Metadata = {
@@ -22,23 +22,34 @@ export const metadata: Metadata = {
   },
 };
 
+type CardPerson = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  image?: string;
+  imageAlt: string;
+  x?: string;
+  xHandle?: string;
+};
+
 function Portrait({
-  member,
+  person,
   priority,
   sizes,
 }: {
-  member: TeamMember;
+  person: CardPerson;
   priority?: boolean;
   sizes: string;
 }) {
-  if (member.image) {
+  if (person.image) {
     return (
       <Image
-        src={member.image}
-        alt={member.imageAlt}
+        src={person.image}
+        alt={person.imageAlt}
         fill
         sizes={sizes}
-        className="object-cover object-[center_18%]"
+        className="object-cover object-center"
         priority={priority}
       />
     );
@@ -49,50 +60,52 @@ function Portrait({
       className="absolute inset-0 flex items-center justify-center bg-night text-cream"
       aria-hidden
     >
-      <span className="t-28 tracking-[-0.02em]">{initials(member)}</span>
+      <span className="t-28 tracking-[-0.02em]">{initials(person)}</span>
     </div>
   );
 }
 
-function MemberCard({
-  member,
+function PersonCard({
+  person,
   priority,
   className = "",
 }: {
-  member: TeamMember;
+  person: CardPerson;
   priority?: boolean;
   className?: string;
 }) {
   return (
-    <li id={member.id} className={`scroll-mt-28 min-w-0 ${className}`}>
+    <li id={person.id} className={`scroll-mt-28 min-w-0 ${className}`}>
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-sand">
         <Portrait
-          member={member}
+          person={person}
           priority={priority}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
         />
       </div>
       <div className="mt-3 border-t border-ink/15 pt-3">
         <h2 className="t-16 leading-[1.2]">
-          <span className="block">{member.firstName}</span>
-          {member.lastName ? (
-            <span className="block text-ink/55">{member.lastName}</span>
+          <span className="block">{person.firstName}</span>
+          {person.lastName ? (
+            <span className="block text-ink/55">{person.lastName}</span>
           ) : null}
         </h2>
         <p className="t-14 mt-2 font-normal leading-[1.3] text-ink/50">
-          {member.role}
+          {person.role}
         </p>
-        <a
-          href={member.x}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex items-center gap-1.5 text-[12px] tracking-[-0.01em] text-ink/55 transition-colors hover:text-ink"
-        >
-          <span aria-hidden className="text-[13px] font-medium text-ink">
-            𝕏
-          </span>
-          <span className="truncate">{member.xHandle}</span>
-        </a>
+        {person.x && person.xHandle ? (
+          <a
+            href={person.x}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 text-[12px] tracking-[-0.01em] text-ink/55 transition-colors hover:text-ink"
+          >
+            <span aria-hidden className="text-[13px] font-medium text-ink">
+              𝕏
+            </span>
+            <span className="truncate">{person.xHandle}</span>
+          </a>
+        ) : null}
       </div>
     </li>
   );
@@ -102,21 +115,30 @@ export default function TeamPage() {
   const founders = TEAM.filter((m) => m.featured);
   const rest = TEAM.filter((m) => !m.featured);
 
-  const realMembers = TEAM.filter((m) => !m.id.startsWith("dummy-"));
-  const people = realMembers.map((m) => ({
-    "@type": "Person",
+  const people = TEAM.map((m) => ({
+    "@type": "Person" as const,
     name: fullName(m),
     givenName: m.firstName,
-    familyName: m.lastName,
+    familyName: m.lastName || undefined,
     jobTitle: m.role,
     image: m.image ? new URL(m.image, SITE_URL).toString() : undefined,
     url: `${SITE_URL}/team#${m.id}`,
-    sameAs: [m.x],
+    sameAs: m.x ? [m.x] : undefined,
     worksFor: {
       "@type": "Organization",
       name: SITE.brand,
       url: SITE_URL,
     },
+  }));
+
+  const advisorsLd = ADVISORS.map((a) => ({
+    "@type": "Person" as const,
+    name: fullName(a),
+    givenName: a.firstName,
+    familyName: a.lastName || undefined,
+    jobTitle: a.role,
+    image: new URL(a.image, SITE_URL).toString(),
+    url: `${SITE_URL}/team#${a.id}`,
   }));
 
   return (
@@ -135,8 +157,10 @@ export default function TeamPage() {
                 founders.some((f) => fullName(f) === p.name),
               ),
               employee: people,
+              member: advisorsLd,
             },
             ...people,
+            ...advisorsLd,
           ],
         }}
       />
@@ -155,22 +179,37 @@ export default function TeamPage() {
           {/* Co-founders — same cards, centered pair */}
           <ul className="mx-auto grid max-w-[520px] grid-cols-2 gap-x-4 gap-y-10 md:max-w-[640px] md:gap-x-6">
             {founders.map((member) => (
-              <MemberCard key={member.id} member={member} priority />
+              <PersonCard key={member.id} person={member} priority />
             ))}
           </ul>
 
-          {/* Everyone else — same cards, centered (incl. last incomplete row) */}
+          {/* Everyone else — same cards, centered */}
           {rest.length > 0 ? (
             <ul className="mt-12 flex flex-wrap justify-center gap-x-4 gap-y-10 border-t border-ink/10 pt-12 md:mt-16 md:gap-x-6 md:gap-y-12 md:pt-16">
               {rest.map((member) => (
-                <MemberCard
+                <PersonCard
                   key={member.id}
-                  member={member}
+                  person={member}
                   className="w-[calc((100%-1rem)/2)] sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-4.5rem)/4)] lg:w-[calc((100%-6rem)/5)]"
                 />
               ))}
             </ul>
           ) : null}
+        </section>
+
+        <section className="gutter border-t border-ink/10 bg-paper py-12 md:py-16">
+          <div className="mb-10 md:mb-12">
+            <p className="tag">Guidance</p>
+            <h2 className="t-40 mt-4">Advisors</h2>
+            <p className="t-16 mt-3 max-w-[40ch] font-normal text-ink/60">
+              Experienced operators advising Ghost Labs.
+            </p>
+          </div>
+          <ul className="mx-auto grid max-w-[520px] grid-cols-2 gap-x-4 gap-y-10 md:max-w-[640px] md:gap-x-6">
+            {ADVISORS.map((advisor) => (
+              <PersonCard key={advisor.id} person={advisor} />
+            ))}
+          </ul>
         </section>
 
         <section className="gutter border-t border-ink/10 bg-sun py-12 md:py-14">

@@ -13,7 +13,7 @@
 | **Demo video** | [youtu.be/QTJv78KeQqM](https://youtu.be/QTJv78KeQqM) |
 | **X** | [x.com/ghostlabshq](https://x.com/ghostlabshq) |
 | **Telegram** | [t.me/ghostlabshq_xyz](https://t.me/ghostlabshq_xyz) |
-| **Discord** | [discord.gg/4xsr4MRhN](https://discord.gg/4xsr4MRhN) |
+| **Discord** | [discord.gg/XSPszRsTZY](https://discord.gg/XSPszRsTZY) |
 | **LinkedIn** | [linkedin.com/company/ghostlabshq](https://www.linkedin.com/company/ghostlabshq) |
 | **GitHub** | [github.com/arnabbhowmik07/Ghost](https://github.com/arnabbhowmik07/Ghost) |
 | **Ambassador form** | [Google Form](https://forms.gle/6WNNsDzP1eyA3vhf9) |
