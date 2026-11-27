@@ -143,6 +143,7 @@ export default function TeamPage() {
     jobTitle: a.role,
     image: new URL(a.image, SITE_URL).toString(),
     url: `${SITE_URL}/team#${a.id}`,
+    sameAs: a.x ? [a.x] : undefined,
   }));
 
   return (

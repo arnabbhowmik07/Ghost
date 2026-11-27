@@ -23,6 +23,8 @@ export type Advisor = {
   role: string;
   image: string;
   imageAlt: string;
+  x?: string;
+  xHandle?: string;
 };
 
 export const TEAM: TeamMember[] = [
@@ -138,6 +140,8 @@ export const ADVISORS: Advisor[] = [
     role: "Solutions Architect · BNB Chain",
     image: "/team/lucas-liao.jpg",
     imageAlt: "Lucas Liao, Solutions Architect at BNB Chain, advisor at Ghost Labs",
+    x: "https://x.com/0xlucasliao",
+    xHandle: "@0xlucasliao",
   },
   {
     id: "vlad",
@@ -146,6 +150,8 @@ export const ADVISORS: Advisor[] = [
     role: "Business Developer · BNB Chain",
     image: "/team/vlad.jpg",
     imageAlt: "Vlad, Business Developer at BNB Chain, advisor at Ghost Labs",
+    x: "https://x.com/draffilog",
+    xHandle: "@draffilog",
   },
 ];
 
