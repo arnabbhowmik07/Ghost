@@ -88,11 +88,8 @@ function PersonCard({
         />
       </div>
       <div className="mt-3 border-t border-ink/15 pt-3">
-        <h2 className="t-16 leading-[1.2]">
-          <span className="block">{person.firstName}</span>
-          {person.lastName ? (
-            <span className="block text-ink/55">{person.lastName}</span>
-          ) : null}
+        <h2 className="t-16 leading-[1.2] text-ink">
+          {[person.firstName, person.lastName].filter(Boolean).join(" ")}
         </h2>
         <p className="t-14 mt-2 font-normal leading-[1.3] text-ink/50">
           {person.role}
