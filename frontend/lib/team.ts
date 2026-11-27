@@ -121,16 +121,6 @@ export const TEAM: TeamMember[] = [
     xHandle: "@HassanA98493054",
   },
   {
-    id: "sohan",
-    firstName: "Sohan",
-    lastName: "Parvas",
-    role: "KOLs Manager",
-    image: "/team/sohan.jpg",
-    imageAlt: "Sohan Parvas, KOLs manager at Ghost Labs",
-    x: "https://x.com/MdSohan13605277",
-    xHandle: "@MdSohan13605277",
-  },
-  {
     id: "draheem",
     firstName: "Draheem",
     lastName: "",
