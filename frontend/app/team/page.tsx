@@ -178,13 +178,13 @@ export default function TeamPage() {
               Ghost Labs — the people behind prepaid gas on Solana.
             </p>
           </div>
-          <div className="relative mx-auto mt-8 aspect-[1672/941] w-full max-w-[720px] overflow-hidden bg-night md:mt-10">
+          <div className="relative mx-auto mt-8 aspect-[1672/941] w-full max-w-[1100px] overflow-hidden bg-night md:mt-10">
             <Image
               src="/team/hero.jpg"
               alt="Ghost Labs team at BNB Hack Bengaluru — hackathon winners"
               fill
               priority
-              sizes="(max-width: 768px) 100vw, 720px"
+              sizes="(max-width: 1100px) 100vw, 1100px"
               className="object-cover object-center"
             />
           </div>
@@ -220,13 +220,13 @@ export default function TeamPage() {
               Experienced operators advising Ghost Labs.
             </p>
           </div>
-          <ul className="mx-auto grid max-w-[960px] grid-cols-1 gap-y-10 md:grid-cols-2 md:gap-x-6 md:gap-y-12">
+          <ul className="grid grid-cols-1 gap-y-10 md:grid-cols-2 md:gap-x-8 md:gap-y-12">
             {ADVISORS.map((advisor) => (
               <PersonCard
                 key={advisor.id}
                 person={advisor}
                 aspectClass="aspect-[16/9]"
-                sizes="(max-width: 768px) 100vw, 480px"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             ))}
           </ul>
