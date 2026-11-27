@@ -8,6 +8,7 @@ import { PrivacyStat } from "@/components/landing/PrivacyStat";
 import { FigProof, FigTree } from "@/components/landing/Figures";
 import { TurnArrow } from "@/components/landing/marks";
 import { BuiltWithLogos } from "@/components/landing/BuiltWithLogos";
+import { DemoVideo } from "@/components/landing/DemoVideo";
 import {
   APP_URL,
   contracts,
@@ -239,6 +240,8 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+
+      <DemoVideo />
 
       <section className="bg-sand">
         <div className="gutter">
