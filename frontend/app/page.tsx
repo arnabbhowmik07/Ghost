@@ -245,8 +245,6 @@ export default function Home() {
         </div>
       </section>
 
-      <DemoVideo />
-
       <section className="bg-sand">
         <div className="gutter">
           <div className="flex flex-wrap items-center gap-x-10 gap-y-6 border-b border-ink/15 py-[60px]">
@@ -468,6 +466,8 @@ export default function Home() {
           <Cases items={cases} />
         </div>
       </section>
+
+      <DemoVideo />
 
       <section id="faq" className="gutter scroll-mt-24 py-[110px]">
         <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] md:gap-16">
