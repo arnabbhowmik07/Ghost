@@ -205,7 +205,16 @@ export async function submitWithdraw(params: {
   finalTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
   finalTx.sign(relayer);
   const sig = await connection.sendRawTransaction(finalTx.serialize());
-  await connection.confirmTransaction(sig, "confirmed");
+  const confirmation = await connection.confirmTransaction(sig, "confirmed");
+  // confirmTransaction resolves (does not throw) when the tx landed but failed.
+  if (confirmation.value.err) {
+    throw Object.assign(
+      new Error(
+        `Withdraw transaction ${sig} failed on-chain: ${JSON.stringify(confirmation.value.err)}`,
+      ),
+      { signature: sig },
+    );
+  }
   return sig;
 }
 
