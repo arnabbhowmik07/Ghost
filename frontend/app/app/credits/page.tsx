@@ -20,7 +20,10 @@ import {
   NATIVE_SOL,
   fetchGasNoteBalance,
   listGasNotes,
+  listUnregisteredGasNotes,
+  pruneAbandonedGasNotes,
   quoteGasCredit,
+  retryGasNoteRegistration,
   topUpGasCredits,
   type CreditQuote,
   type StoredGasNote,
@@ -45,17 +48,43 @@ export default function CreditsPage() {
   const [quote, setQuote] = useState<CreditQuote | null>(null);
   const [quoteBusy, setQuoteBusy] = useState(false);
   const [quoteError, setQuoteError] = useState("");
-  const [pendingRefund, setPendingRefund] = useState<{
-    message: string;
-    depositTx: string;
-  } | null>(null);
+  /** Deposits that may be on-chain but have no credit yet (persisted). */
+  const [unregistered, setUnregistered] = useState<StoredGasNote[]>([]);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
   function refresh() {
     setNotes(listGasNotes());
+    setUnregistered(listUnregisteredGasNotes());
+  }
+
+  async function retryRegistration(note: string, quiet = false) {
+    setRetrying(note);
+    try {
+      const out = await retryGasNoteRegistration(note);
+      if (!quiet) {
+        toast[out ? "success" : "message"](
+          out
+            ? "Credit registered."
+            : "That deposit never landed on-chain, so nothing was spent. Note removed.",
+        );
+      }
+    } catch (e: unknown) {
+      if (!quiet) toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRetrying(null);
+      refresh();
+    }
   }
 
   useEffect(() => {
+    pruneAbandonedGasNotes();
     refresh();
+    // Resume any top-up that was interrupted (closed tab, relayer outage).
+    void (async () => {
+      for (const n of listUnregisteredGasNotes()) {
+        if (n.status === "sent") await retryRegistration(n.note, true);
+      }
+    })();
     fetchGasConfig()
       .then(setGas)
       .catch(() => setGas(null));
@@ -173,7 +202,6 @@ export default function CreditsPage() {
       return;
     }
     setBusy(true);
-    setPendingRefund(null);
     try {
       toast.message(`Depositing ${activeAsset.label} for gas credit…`);
       const stored = await topUpGasCredits({
@@ -195,18 +223,15 @@ export default function CreditsPage() {
       }
     } catch (e: unknown) {
       if (e instanceof GasCreditDepositPendingError) {
-        setPendingRefund({
-          message: e.message,
-          depositTx: e.depositTx,
-        });
         toast.error(
-          "Deposit sent, but credit was not issued. Refund within 48 hours, or email support@ghostlabshq.xyz.",
+          "Deposit sent, but the credit is not registered yet. Your note is saved below. Retry registration.",
         );
       } else {
         toast.error(e instanceof Error ? e.message : String(e));
       }
     } finally {
       setBusy(false);
+      refresh();
     }
   }
 
@@ -288,32 +313,70 @@ export default function CreditsPage() {
         </>
       }
     >
-      {pendingRefund ? (
+      {unregistered.length ? (
         <WorkspacePanel className="border-ink/20 bg-sand/50">
-          <p className="text-[15px] text-ink">Deposit not registered</p>
+          <p className="text-[15px] text-ink">Deposits waiting for credit</p>
           <p className="mt-2 text-[13px] font-normal leading-relaxed text-ink/70">
-            Your transfer went on-chain, but Ghost could not issue a gas note. If
-            the funds were credited to Ghost, they will be refunded within 48
-            hours - or reach support at{" "}
+            These notes are saved in this browser. If the deposit landed on-chain,
+            retrying registers the credit. If it never landed, the note is removed
+            and nothing was spent. Still stuck? Email{" "}
             <a
               href="mailto:support@ghostlabshq.xyz"
               className="underline underline-offset-2"
             >
               support@ghostlabshq.xyz
-            </a>
-            .
+            </a>{" "}
+            with the transaction.
           </p>
-          <p className="mt-3 break-all font-mono text-[11px] text-ink/45">
-            Tx {pendingRefund.depositTx}
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-4"
-            onClick={() => setPendingRefund(null)}
-          >
-            Dismiss
-          </Button>
+          <ul className="mt-4 divide-y divide-ink/10 border border-ink/12 bg-paper">
+            {unregistered.map((n) => (
+              <li
+                key={n.commitment}
+                className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                data-testid="gas-note-unregistered"
+              >
+                <div className="min-w-0">
+                  <p className="text-[14px] text-ink">
+                    {formatUsdcRaw(n.initialAmount)} USDC credit ·{" "}
+                    {n.status === "sent" ? "deposit sent" : "awaiting signature"}
+                  </p>
+                  {n.depositTx ? (
+                    <p className="mt-1 truncate font-mono text-[11px] text-ink/45">
+                      Tx {n.depositTx}
+                    </p>
+                  ) : null}
+                  {n.lastError ? (
+                    <p className="mt-1 text-[12px] text-ink/60">{n.lastError}</p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => copyNote(n.note)}
+                  >
+                    <Copy className="size-3.5" />
+                    Copy
+                  </Button>
+                  {n.status === "sent" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      disabled={retrying === n.note}
+                      onClick={() => retryRegistration(n.note)}
+                    >
+                      <RefreshCw
+                        className={`size-3.5 ${retrying === n.note ? "animate-spin" : ""}`}
+                      />
+                      Retry registration
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
         </WorkspacePanel>
       ) : null}
 

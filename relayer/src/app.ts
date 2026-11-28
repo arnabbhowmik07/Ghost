@@ -151,12 +151,18 @@ export async function buildApp(
     } catch (err: any) {
       const code =
         err?.statusCode === 400 ||
+        err?.statusCode === 409 ||
         err?.statusCode === 502 ||
         err?.statusCode === 503
           ? err.statusCode
           : 500;
       req.log.error(err);
-      return reply.code(code).send({ error: err?.message ?? "credit deposit failed" });
+      // Tell clients whether re-sending the same registration can succeed;
+      // the funds are already on-chain, so a retryable error must not be final.
+      const retryable = err?.retryable === true || code !== 400;
+      return reply
+        .code(code)
+        .send({ error: err?.message ?? "credit deposit failed", retryable });
     }
   });
 

@@ -27,8 +27,15 @@ import { getConnection, loadRelayerKeypair } from "./solana.js";
 
 export const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 
-/** Reject deposits older than this (seconds). */
-const MAX_DEPOSIT_AGE_SEC = 15 * 60;
+/**
+ * Reject deposits older than this (seconds).
+ *
+ * The Memo commitment binding already stops anyone but the note holder from
+ * claiming a deposit, so this window only has to bound how stale a price can
+ * be when a deposit is registered late (client crash, relayer outage, RPC lag).
+ * 15 minutes was short enough to strand funds whenever registration failed.
+ */
+export const MAX_DEPOSIT_AGE_SEC = 24 * 60 * 60;
 
 export type GasCredit = {
   commitment: string;
@@ -117,6 +124,17 @@ async function withCommitmentLock<T>(
     release();
     if (commitmentChains.get(key) === tail) commitmentChains.delete(key);
   }
+}
+
+/**
+ * Transient failure: the deposit may still register if the client retries
+ * (e.g. the relayer's RPC has not seen the tx yet). Never for bad input.
+ */
+function retryableError(message: string): Error {
+  return Object.assign(new Error(message), {
+    statusCode: 409,
+    retryable: true,
+  });
 }
 
 function purgePendingDeposits() {
@@ -370,9 +388,7 @@ type ParsedTx = {
 function requireFreshDeposit(parsed: ParsedTx) {
   const bt = parsed.blockTime;
   if (bt == null) {
-    throw Object.assign(new Error("Deposit transaction missing blockTime"), {
-      statusCode: 400,
-    });
+    throw retryableError("Deposit transaction missing blockTime");
   }
   const age = Math.floor(Date.now() / 1000) - bt;
   if (age > MAX_DEPOSIT_AGE_SEC || age < -120) {
@@ -544,16 +560,52 @@ export async function registerGasCreditDeposit(params: {
   if (!/^[0-9a-f]{64}$/.test(commitment)) {
     throw Object.assign(new Error("invalid commitment"), { statusCode: 400 });
   }
-  if (getCredit(commitment)) {
-    throw Object.assign(new Error("Commitment already registered"), {
-      statusCode: 400,
-    });
-  }
-
   const txSignature = params.txSignature.trim();
   if (!txSignature) {
     throw Object.assign(new Error("txSignature required"), { statusCode: 400 });
   }
+
+  // One registration per commitment at a time: the slow path below awaits RPC
+  // and Jupiter, and the dedupe checks must hold across those awaits.
+  return withCommitmentLock(commitment, () =>
+    registerLocked({ ...params, commitment, txSignature }),
+  );
+}
+
+/**
+ * A retry of a registration that already succeeded returns the same credit,
+ * so clients can safely re-send after a lost response.
+ */
+function existingRegistration(
+  commitment: string,
+  txSignature: string,
+): GasCredit | undefined {
+  const byCommitment = getCredit(commitment);
+  if (byCommitment) {
+    if (byCommitment.depositTx === txSignature) return byCommitment;
+    throw Object.assign(new Error("Commitment already registered"), {
+      statusCode: 400,
+    });
+  }
+  if (getCreditByDepositTx(txSignature)) {
+    throw Object.assign(new Error("Deposit transaction already registered"), {
+      statusCode: 400,
+    });
+  }
+  return undefined;
+}
+
+async function registerLocked(params: {
+  commitment: string;
+  amount: string;
+  txSignature: string;
+  mint?: string;
+}): Promise<GasCredit> {
+  const cfg = loadConfig();
+  const { commitment, txSignature } = params;
+
+  const already = existingRegistration(commitment, txSignature);
+  if (already) return already;
 
   // Reserve BEFORE any await that widens the race window.
   beginDepositReservation(txSignature);
@@ -568,9 +620,8 @@ export async function registerGasCreditDeposit(params: {
       commitment: "confirmed",
     })) as ParsedTx | null;
     if (!parsed?.meta) {
-      throw Object.assign(new Error("Deposit transaction not found"), {
-        statusCode: 400,
-      });
+      // Usually the relayer RPC lagging the client RPC by a few slots.
+      throw retryableError("Deposit transaction not found yet");
     }
     if (parsed.meta.err) {
       throw Object.assign(new Error("Deposit transaction failed on-chain"), {
@@ -641,16 +692,8 @@ export async function registerGasCreditDeposit(params: {
     }
 
     // Re-check after slow path (another writer may have finished).
-    if (getCredit(commitment)) {
-      throw Object.assign(new Error("Commitment already registered"), {
-        statusCode: 400,
-      });
-    }
-    if (getCreditByDepositTx(txSignature)) {
-      throw Object.assign(new Error("Deposit transaction already registered"), {
-        statusCode: 400,
-      });
-    }
+    const raced = existingRegistration(commitment, txSignature);
+    if (raced) return raced;
 
     const priced = await quoteGasCreditDeposit({
       mint: depositMint,
