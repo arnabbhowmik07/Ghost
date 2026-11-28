@@ -173,6 +173,33 @@ describe("Ghost Gas", () => {
     assert.throws(() => assertSponsoredTransferTx(tx, relayer), /Priority fee/);
   });
 
+  it("rejects a max CU limit paired with a max priority price", () => {
+    const { tx, relayer } = signedTransferChecked({
+      cuLimit: GAS_CU_LIMIT_MAX,
+      cuPrice: GAS_CU_PRICE_MAX,
+    });
+    assert.throws(
+      () => assertSponsoredTransferTx(tx, relayer),
+      /Total priority fee/,
+    );
+  });
+
+  it("rejects a wallet-injected high price that follows a valid price", () => {
+    const { tx, relayer } = signedTransferChecked({
+      cuLimit: GAS_CU_LIMIT_MAX,
+      cuPrice: GAS_CU_PRICE,
+    });
+    tx.instructions.push(
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: GAS_CU_PRICE_MAX,
+      }),
+    );
+    assert.throws(
+      () => assertSponsoredTransferTx(tx, relayer),
+      /Total priority fee/,
+    );
+  });
+
   it("rejects Approve and other token instructions", () => {
     const { tx, relayer } = signedTransferChecked({ extraApprove: true });
     assert.throws(

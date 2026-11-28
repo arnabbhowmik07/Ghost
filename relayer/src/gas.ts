@@ -16,6 +16,7 @@ import {
   type Keypair,
 } from "@solana/web3.js";
 import { getConnection, loadRelayerKeypair } from "./solana.js";
+import { assertTransactionSucceeded } from "./confirm.js";
 import { loadConfig } from "./config.js";
 import {
   assertGasNoteHasFee,
@@ -41,6 +42,16 @@ export const GAS_CU_PRICE = 100_000;
  * Headroom above typical wallet defaults; still cheap in SOL at our CU caps.
  */
 export const GAS_CU_PRICE_MAX = 5_000_000;
+
+/**
+ * Ceiling on the total priority fee (lamports) a sponsored transaction can
+ * charge the relayer: ceil(computeUnitLimit * computeUnitPrice / 1e6).
+ *
+ * The per-field caps above bound each value, not their product. At 500k CU
+ * and 5M micro-lamports/CU the relayer would pay 2.5M lamports (0.0025 SOL)
+ * per send, far more than the 10_000 raw USDC (0.01 USDC) credit fee.
+ */
+export const GAS_MAX_PRIORITY_FEE_LAMPORTS = 60_000n;
 
 /**
  * Sponsored-tx wallet-compat allowlist (aligned with x402 / Phantom+Solflare practice):
@@ -284,6 +295,32 @@ function readU64LE(data: Buffer, offset: number): bigint {
   return data.readBigUInt64LE(offset);
 }
 
+/** Priority fee in lamports for a CU limit and micro-lamports per CU. */
+function priorityFeeLamports(
+  units: number,
+  microLamportsPerCu: bigint,
+): bigint {
+  return (BigInt(units) * microLamportsPerCu + 999_999n) / 1_000_000n;
+}
+
+/**
+ * Wallets can inject or reorder compute budget instructions. Take the max
+ * across every limit/price pair so no ordering can hide an oversized fee.
+ */
+function maxPriorityFeeLamports(
+  limits: readonly number[],
+  prices: readonly bigint[],
+): bigint {
+  let max = 0n;
+  for (const units of limits) {
+    for (const price of prices) {
+      const fee = priorityFeeLamports(units, price);
+      if (fee > max) max = fee;
+    }
+  }
+  return max;
+}
+
 /** Wallet guard ixs (Lighthouse/Memo) must not touch the fee payer. */
 function assertWalletGuardKeys(
   ix: TransactionInstruction,
@@ -333,8 +370,8 @@ export function assertSponsoredTransferTx(
 
   let transferIx: TransactionInstruction | null = null;
   let ataIx: TransactionInstruction | null = null;
-  let sawLimit = false;
-  let sawPrice = false;
+  const cuLimits: number[] = [];
+  const cuPrices: bigint[] = [];
   let lighthouseCount = 0;
   let memoCount = 0;
 
@@ -358,7 +395,7 @@ export function assertSponsoredTransferTx(
             { statusCode: 400 },
           );
         }
-        sawLimit = true;
+        cuLimits.push(units);
         continue;
       }
       if (tag === CB_SET_PRICE) {
@@ -376,7 +413,7 @@ export function assertSponsoredTransferTx(
             { statusCode: 400 },
           );
         }
-        sawPrice = true;
+        cuPrices.push(price);
         continue;
       }
       if (tag === CB_REQUEST_HEAP) {
@@ -513,9 +550,19 @@ export function assertSponsoredTransferTx(
       statusCode: 400,
     });
   }
-  if (!sawLimit || !sawPrice) {
+  if (!cuLimits.length || !cuPrices.length) {
     throw Object.assign(
       new Error("Compute budget limit and price instructions are required"),
+      { statusCode: 400 },
+    );
+  }
+
+  const totalPriorityFee = maxPriorityFeeLamports(cuLimits, cuPrices);
+  if (totalPriorityFee > GAS_MAX_PRIORITY_FEE_LAMPORTS) {
+    throw Object.assign(
+      new Error(
+        `Total priority fee ${totalPriorityFee.toString()} lamports exceeds max ${GAS_MAX_PRIORITY_FEE_LAMPORTS.toString()}`,
+      ),
       { statusCode: 400 },
     );
   }
@@ -614,15 +661,19 @@ export async function submitSponsoredTransfer(
   // Debit first (serialized) so concurrent submits cannot overspend.
   const afterDebit = await debitGasNoteFee(note);
 
-  tx.partialSign(relayer);
-  const connection = getConnection();
   try {
+    tx.partialSign(relayer);
+    const connection = getConnection();
     const raw = tx.serialize();
     const signature = await connection.sendRawTransaction(raw, {
       skipPreflight: false,
       preflightCommitment: "confirmed",
     });
-    await connection.confirmTransaction(signature, "confirmed");
+    const confirmation = await connection.confirmTransaction(
+      signature,
+      "confirmed",
+    );
+    assertTransactionSucceeded(signature, confirmation);
     return { signature, creditRemaining: afterDebit.remaining };
   } catch (err) {
     try {
